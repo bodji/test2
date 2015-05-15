@@ -45,7 +45,7 @@ import (
 
 var (
 	timeout = time.Duration(time.Second)
-	client = http.Client{Timeout: timeout}
+	client  = http.Client{Timeout: timeout}
 )
 
 // ShortenBackendW000t object

@@ -29,7 +29,6 @@ THE SOFTWARE.
 
 package swift
 
-
 type configInfo struct {
-    Username, Password, Host, ProjectName, Container string
+	Username, Password, Host, ProjectName, Container string
 }

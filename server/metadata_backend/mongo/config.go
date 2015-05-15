@@ -30,26 +30,26 @@ THE SOFTWARE.
 package mongo
 
 import (
-    "github.com/root-gg/utils"
+	"github.com/root-gg/utils"
 )
 
 // MetadataBackendConfig object
 type MetadataBackendConfig struct {
-    URL        string
-    Database   string
-    Collection string
-    Username   string
-    Password   string
-    Ssl        bool
+	URL        string
+	Database   string
+	Collection string
+	Username   string
+	Password   string
+	Ssl        bool
 }
 
 // NewMongoMetadataBackendConfig configures the backend
 // from config passed as argument
 func NewMongoMetadataBackendConfig(config map[string]interface{}) (mmb *MetadataBackendConfig) {
-    mmb = new(MetadataBackendConfig)
-    mmb.URL = "127.0.0.1:27017"
-    mmb.Database = "plik"
-    mmb.Collection = "meta"
-    utils.Assign(mmb, config)
-    return
+	mmb = new(MetadataBackendConfig)
+	mmb.URL = "127.0.0.1:27017"
+	mmb.Database = "plik"
+	mmb.Collection = "meta"
+	utils.Assign(mmb, config)
+	return
 }

@@ -30,23 +30,23 @@ THE SOFTWARE.
 package file
 
 import (
-    "github.com/root-gg/utils"
+	"github.com/root-gg/utils"
 )
 
 // MetadataBackendConfig object
 type MetadataBackendConfig struct {
-    Directory string
+	Directory string
 }
 
 // NewFileMetadataBackendConfig configures the backend
 // from config passed as argument
 func NewFileMetadataBackendConfig(config map[string]interface{}) (fmb *MetadataBackendConfig) {
-    fmb = new(MetadataBackendConfig)
-    // Default upload directory is ./files
-    // this is the same as the default file
-    // data backend so by default files and
-    // metadata are colocated
-    fmb.Directory = "files"
-    utils.Assign(fmb, config)
-    return
+	fmb = new(MetadataBackendConfig)
+	// Default upload directory is ./files
+	// this is the same as the default file
+	// data backend so by default files and
+	// metadata are colocated
+	fmb.Directory = "files"
+	utils.Assign(fmb, config)
+	return
 }

@@ -47,7 +47,6 @@ var (
 	locks map[string]*sync.RWMutex
 )
 
-
 // MetadataBackend object
 type MetadataBackend struct {
 	Config *MetadataBackendConfig
@@ -310,7 +309,6 @@ func (fmb *MetadataBackend) GetUploadsToRemove(ctx *common.PlikContext) (ids []s
 
 	return ids, nil
 }
-
 
 // /!\ There is a race condition to avoid /!\
 // If a client add/remove many files of the same upload

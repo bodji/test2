@@ -144,7 +144,6 @@ func (sb *Backend) RemoveUpload(ctx *common.PlikContext, upload *common.Upload) 
 	return
 }
 
-
 func (sb *Backend) getFileID(upload *common.Upload, fileID string) string {
 	return upload.ID + "." + fileID
 }
