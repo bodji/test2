@@ -47,9 +47,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/root-gg/logger"
 	"github.com/root-gg/plik/server/common"
-	"github.com/root-gg/plik/server/data_backend"
-	"github.com/root-gg/plik/server/metadata_backend"
-	"github.com/root-gg/plik/server/shorten_backend"
+	"github.com/root-gg/plik/server/dataBackend"
+	"github.com/root-gg/plik/server/metadataBackend"
+	"github.com/root-gg/plik/server/shortenBackend"
 	"github.com/root-gg/utils"
 )
 

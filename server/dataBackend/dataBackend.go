@@ -27,46 +27,49 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 **/
 
-package metadata_backend
+package data_backend
 
 import (
+	"io"
+
 	"github.com/root-gg/plik/server/common"
-	"github.com/root-gg/plik/server/metadata_backend/file"
-	"github.com/root-gg/plik/server/metadata_backend/mongo"
+	"github.com/root-gg/plik/server/dataBackend/file"
+	"github.com/root-gg/plik/server/dataBackend/swift"
+	"github.com/root-gg/plik/server/dataBackend/weedfs"
 )
 
-var metadataBackend MetadataBackend
+var dataBackend DataBackend
 
-// MetadataBackend interface describes methods that metadata backends
+// DataBackend interface describes methods that data backends
 // must implements to be compatible with plik.
-type MetadataBackend interface {
-	Create(ctx *common.PlikContext, u *common.Upload) (err error)
-	Get(ctx *common.PlikContext, id string) (u *common.Upload, err error)
-	AddOrUpdateFile(ctx *common.PlikContext, u *common.Upload, file *common.File) (err error)
-	RemoveFile(ctx *common.PlikContext, u *common.Upload, file *common.File) (err error)
-	Remove(ctx *common.PlikContext, u *common.Upload) (err error)
-	GetUploadsToRemove(ctx *common.PlikContext) (ids []string, err error)
+type DataBackend interface {
+	GetFile(ctx *common.PlikContext, u *common.Upload, id string) (rc io.ReadCloser, err error)
+	AddFile(ctx *common.PlikContext, u *common.Upload, file *common.File, fileReader io.Reader) (backendDetails map[string]interface{}, err error)
+	RemoveFile(ctx *common.PlikContext, u *common.Upload, id string) (err error)
+	RemoveUpload(ctx *common.PlikContext, u *common.Upload) (err error)
 }
 
-// GetMetaDataBackend is a singleton pattern.
+// GetDataBackend is a singleton pattern.
 // Init static backend if not already and return it
-func GetMetaDataBackend() MetadataBackend {
-	if metadataBackend == nil {
+func GetDataBackend() DataBackend {
+	if dataBackend == nil {
 		Initialize()
 	}
-	return metadataBackend
+	return dataBackend
 }
 
 // Initialize backend from type found in configuration
 func Initialize() {
-	if metadataBackend == nil {
-		switch common.Config.MetadataBackend {
+	if dataBackend == nil {
+		switch common.Config.DataBackend {
 		case "file":
-			metadataBackend = file.NewFileMetadataBackend(common.Config.MetadataBackendConfig)
-		case "mongo":
-			metadataBackend = mongo.NewMongoMetadataBackend(common.Config.MetadataBackendConfig)
+			dataBackend = file.NewFileBackend(common.Config.DataBackendConfig)
+		case "swift":
+			dataBackend = swift.NewSwiftBackend(common.Config.DataBackendConfig)
+		case "weedfs":
+			dataBackend = weedfs.NewWeedFsBackend(common.Config.DataBackendConfig)
 		default:
-			common.Log().Fatalf("Invalid metadata backend %s", common.Config.DataBackend)
+			common.Log().Fatalf("Invalid data backend %s", common.Config.DataBackend)
 		}
 	}
 }

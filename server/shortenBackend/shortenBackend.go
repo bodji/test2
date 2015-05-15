@@ -31,8 +31,8 @@ package shorten_backend
 
 import (
 	"github.com/root-gg/plik/server/common"
-	"github.com/root-gg/plik/server/shorten_backend/isgd"
-	"github.com/root-gg/plik/server/shorten_backend/w000t"
+	"github.com/root-gg/plik/server/shortenBackend/isgd"
+	"github.com/root-gg/plik/server/shortenBackend/w000t"
 )
 
 var shortenBackend ShortenBackend

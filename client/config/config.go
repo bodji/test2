@@ -355,8 +355,8 @@ func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 	return
 }
 
-// GetLongestFilename
-// Used for a nice display of file names
+// GetLongestFilename is used for a nice
+// display of file names in cli
 func GetLongestFilename() int {
 	return longestFilenameSize
 }
