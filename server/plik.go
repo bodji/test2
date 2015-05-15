@@ -781,7 +781,7 @@ func redirect(req *http.Request, resp http.ResponseWriter, err error, status int
 	return
 }
 
-// Periodicaly remove expired uploads
+// UploadsCleaningRoutine periodicaly remove expired uploads
 func UploadsCleaningRoutine() {
 	ctx := common.RootContext().Fork("clean expired uploads")
 

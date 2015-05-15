@@ -45,7 +45,7 @@ import (
 )
 
 var (
-	plikUrl         = "http://127.0.0.1:8080"
+	plikURL         = "http://127.0.0.1:8080"
 	basicAuth       = ""
 	client          = &http.Client{}
 	contentToUpload = "PLIK"
@@ -159,8 +159,8 @@ func TestTtl(t *testing.T) {
 //
 
 func createUpload(uploadParams *common.Upload, t *testing.T) (upload *common.Upload) {
-	var Url *url.URL
-	Url, err = url.Parse(plikUrl + "/upload")
+	var URL *url.URL
+	URL, err = url.Parse(plikURL + "/upload")
 	if err != nil {
 		t.Fatalf("Error parsing url : %s", err)
 	}
@@ -172,14 +172,14 @@ func createUpload(uploadParams *common.Upload, t *testing.T) (upload *common.Upl
 	}
 
 	var req *http.Request
-	req, err = http.NewRequest("POST", Url.String(), bytes.NewBuffer(j))
+	req, err = http.NewRequest("POST", URL.String(), bytes.NewBuffer(j))
 	if err != nil {
 		t.Fatalf("Error creating request : %s", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-ClientApp", "go_test")
-	req.Header.Set("Referer", plikUrl)
+	req.Header.Set("Referer", plikURL)
 
 	var resp *http.Response
 	resp, err = client.Do(req)
@@ -224,14 +224,14 @@ func uploadFile(uploadInfo *common.Upload, name string, reader *strings.Reader, 
 		return pipeWriter.CloseWithError(err)
 	}()
 
-	var Url *url.URL
-	Url, err = url.Parse(plikUrl + "/upload/" + uploadInfo.ID + "/file")
+	var URL *url.URL
+	URL, err = url.Parse(plikURL + "/upload/" + uploadInfo.ID + "/file")
 	if err != nil {
 		t.Fatalf("Error parsing url : %s", err)
 	}
 
 	var req *http.Request
-	req, err = http.NewRequest("POST", Url.String(), pipeReader)
+	req, err = http.NewRequest("POST", URL.String(), pipeReader)
 	if err != nil {
 		t.Fatalf("Error creating file upload request : %s", err)
 	}
@@ -272,16 +272,16 @@ func uploadFile(uploadInfo *common.Upload, name string, reader *strings.Reader, 
 	return
 }
 
-func getUpload(uploadId string) (httpCode int, upload *common.Upload, err error) {
+func getUpload(uploadID string) (httpCode int, upload *common.Upload, err error) {
 
-	var Url *url.URL
-	Url, err = url.Parse(plikUrl + "/upload/" + uploadId)
+	var URL *url.URL
+	URL, err = url.Parse(plikURL + "/upload/" + uploadID)
 	if err != nil {
 		return
 	}
 
 	var req *http.Request
-	req, err = http.NewRequest("GET", Url.String(), nil)
+	req, err = http.NewRequest("GET", URL.String(), nil)
 	if err != nil {
 		return
 	}
@@ -312,7 +312,7 @@ func getUpload(uploadId string) (httpCode int, upload *common.Upload, err error)
 func getFile(upload *common.Upload, file *common.File) (httpCode int, content string, err error) {
 
 	var Url *url.URL
-	Url, err = url.Parse(plikUrl + "/file/" + upload.ID + "/" + file.ID + "/" + file.Name)
+	Url, err = url.Parse(plikURL + "/file/" + upload.ID + "/" + file.ID + "/" + file.Name)
 	if err != nil {
 		return
 	}
@@ -347,14 +347,14 @@ func getFile(upload *common.Upload, file *common.File) (httpCode int, content st
 
 func removeFile(upload *common.Upload, file *common.File) (httpCode int, err error) {
 
-	var Url *url.URL
-	Url, err = url.Parse(plikUrl + "/upload/" + upload.ID + "/file/" + file.ID)
+	var URL *url.URL
+	URL, err = url.Parse(plikURL + "/upload/" + upload.ID + "/file/" + file.ID)
 	if err != nil {
 		return
 	}
 
 	var req *http.Request
-	req, err = http.NewRequest("DELETE", Url.String(), nil)
+	req, err = http.NewRequest("DELETE", URL.String(), nil)
 	if err != nil {
 		return
 	}
@@ -371,9 +371,9 @@ func removeFile(upload *common.Upload, file *common.File) (httpCode int, err err
 	return
 }
 
-func test(action string, upload *common.Upload, file *common.File, expectedHttpCode int, t *testing.T) {
+func test(action string, upload *common.Upload, file *common.File, expectedHTTPCode int, t *testing.T) {
 
-	t.Logf("Try to %s on upload %s. We should get a %d : ", action, upload.ID, expectedHttpCode)
+	t.Logf("Try to %s on upload %s. We should get a %d : ", action, upload.ID, expectedHTTPCode)
 
 	switch action {
 
@@ -385,8 +385,8 @@ func test(action string, upload *common.Upload, file *common.File, expectedHttpC
 		}
 
 		// Test code
-		if code != expectedHttpCode {
-			t.Fatalf("We got http code %d on action %s on upload %s. We expected %d", code, action, upload.ID, expectedHttpCode)
+		if code != expectedHTTPCode {
+			t.Fatalf("We got http code %d on action %s on upload %s. We expected %d", code, action, upload.ID, expectedHTTPCode)
 		} else {
 			t.Logf(" -> Got a %d. Good", code)
 		}
@@ -399,14 +399,14 @@ func test(action string, upload *common.Upload, file *common.File, expectedHttpC
 		}
 
 		// Test code
-		if code != expectedHttpCode {
-			t.Fatalf("We got http code %d on action %s on upload %s. We expected %d", code, action, upload.ID, expectedHttpCode)
+		if code != expectedHTTPCode {
+			t.Fatalf("We got http code %d on action %s on upload %s. We expected %d", code, action, upload.ID, expectedHTTPCode)
 		} else {
 			t.Logf(" -> Got a %d. Good", code)
 		}
 
 		// Test content
-		if expectedHttpCode == 200 {
+		if expectedHTTPCode == 200 {
 			if content != contentToUpload {
 				t.Fatalf("Did not get expected content (%s) on getting file %s on upload %s. We expected %s", content, file.ID, upload.ID, contentToUpload)
 			} else {
@@ -427,8 +427,8 @@ func test(action string, upload *common.Upload, file *common.File, expectedHttpC
 			t.Fatalf("Failed to execute action %s on file %s from upload %s : %s", action, file.ID, upload.ID, err)
 		}
 
-		if code != expectedHttpCode {
-			t.Fatalf("We got http code %d on action %s on upload %s. We expected %d", code, action, upload.ID, expectedHttpCode)
+		if code != expectedHTTPCode {
+			t.Fatalf("We got http code %d on action %s on upload %s. We expected %d", code, action, upload.ID, expectedHTTPCode)
 		} else {
 			t.Logf(" -> Got a %d. Good", code)
 		}
