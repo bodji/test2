@@ -40,7 +40,7 @@ import (
 	"golang.org/x/crypto/openpgp/armor"
 )
 
-// PgpBackend object
+// Backend object
 type Backend struct {
 	Config *BackendConfig
 }

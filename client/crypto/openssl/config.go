@@ -27,30 +27,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 **/
 
-package pgp
+package openssl
 
 import (
-	"os"
-
-	"github.com/root-gg/utils"
-	"golang.org/x/crypto/openpgp"
+    "github.com/root-gg/utils"
 )
 
 // BackendConfig object
 type BackendConfig struct {
-	Gpg       string
-	Keyring   string
-	Recipient string
-	Email     string
-	Entity    *openpgp.Entity
+    Openssl    string
+    Cipher     string
+    Passphrase string
+    Options    string
 }
 
-// NewPgpBackendConfig instantiate a new Backend Configuration
+// NewOpenSSLBackendConfig instantiate a new Backend Configuration
 // from config map passed as argument
-func NewPgpBackendConfig(config map[string]interface{}) (pb *BackendConfig) {
-	pb = new(BackendConfig)
-	pb.Gpg = "/usr/bin/gpg"
-	pb.Keyring = os.Getenv("HOME") + "/.gnupg/pubring.gpg"
-	utils.Assign(pb, config)
-	return
+func NewOpenSSLBackendConfig(config map[string]interface{}) (ob *BackendConfig) {
+    ob = new(BackendConfig)
+    ob.Openssl = "/usr/bin/openssl"
+    ob.Cipher = "aes256"
+    utils.Assign(ob, config)
+    return
 }
