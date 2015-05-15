@@ -266,7 +266,7 @@ func upload(uploadInfo *common.Upload, name string, size int64, reader io.Reader
 			multiWriter = part
 		} else {
 			bar := pb.New64(size).SetUnits(pb.U_BYTES)
-			bar.Prefix(fmt.Sprintf("%-"+strconv.Itoa(config.LongestFilenameSize)+"s : ", name))
+			bar.Prefix(fmt.Sprintf("%-"+strconv.Itoa(config.GetLongestFilename())+"s : ", name))
 			bar.ShowSpeed = true
 			bar.ShowFinalTime = false
 			bar.SetWidth(100)

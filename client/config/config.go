@@ -46,15 +46,22 @@ import (
 	"github.com/root-gg/utils"
 )
 
+// Static config var
 var Config *UploadConfig
+
+// Static Upload var
 var Upload *common.Upload
+
+// Static files array
 var Files []*FileToUpload
 
+// Private backends
 var cryptoBackend crypto.Backend
 var archiveBackend archive.Backend
 
-var LongestFilenameSize int
+var longestFilenameSize int
 
+// UploadConfig object
 type UploadConfig struct {
 	Debug          bool
 	Quiet          bool
@@ -75,13 +82,7 @@ type UploadConfig struct {
 	TTL            int
 }
 
-type FileToUpload struct {
-	Path       string
-	Base       string
-	Size       int64
-	FileHandle *os.File
-}
-
+// NewUploadConfig construct a new configuration with default values
 func NewUploadConfig() (config *UploadConfig) {
 	config = new(UploadConfig)
 	config.Debug = false
@@ -108,6 +109,18 @@ func NewUploadConfig() (config *UploadConfig) {
 	return
 }
 
+// FileToUpload is a handy struct to gather information
+// about a file to be uploaded
+type FileToUpload struct {
+	Path       string
+	Base       string
+	Size       int64
+	FileHandle *os.File
+}
+
+// Load creates a new default configuration and override it with .plikrc fike.
+// If plikrc does not exist, ask domain,
+// and create a new one in user HOMEDIR
 func Load() (err error) {
 	Config = NewUploadConfig()
 	Upload = common.NewUpload()
@@ -159,7 +172,7 @@ func Load() (err error) {
 	return
 }
 
-// Here, we are unmarshalling args into upload informations
+// UnmarshalArgs into upload informations
 // Argument takes priority over config file param
 func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 
@@ -195,8 +208,8 @@ func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 			}
 
 			// Check file size (for displaying purpose later)
-			if len(fileToUpload.Base) > LongestFilenameSize {
-				LongestFilenameSize = len(fileToUpload.Base)
+			if len(fileToUpload.Base) > longestFilenameSize {
+				longestFilenameSize = len(fileToUpload.Base)
 			}
 
 			// Check mode
@@ -342,24 +355,37 @@ func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 	return
 }
 
+// GetLongestFilename
+// Used for a nice display of file names
+func GetLongestFilename() int {
+	return longestFilenameSize
+}
+
+// GetArchiveBackend is a getter for archive backend
 func GetArchiveBackend() archive.Backend {
 	return archiveBackend
 }
 
+// GetCryptoBackend is a getter for crypto backend
 func GetCryptoBackend() crypto.Backend {
 	return cryptoBackend
 }
 
+// Debug is a handy function that calls Println of message
+// only if Debug is enabled in configuration
 func Debug(message string) {
 	if Config.Debug {
 		fmt.Println(message)
 	}
 }
 
+// Dump takes a interface{} and print the call
+// to Sdump
 func Dump(data interface{}) {
 	fmt.Println(Sdump(data))
 }
 
+// Sdump takes a interface{} and turn it to a string
 func Sdump(data interface{}) string {
 	buf := new(bytes.Buffer)
 	if json, err := json.MarshalIndent(data, "", "    "); err != nil {
