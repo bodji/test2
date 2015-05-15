@@ -120,7 +120,7 @@ Options:
 	config.Debug("Got upload info : " + config.Sdump(uploadInfo))
 
 	printf("Upload successfully created : \n\n")
-	printf("    %s/#/?id=%s\n\n\n", config.Config.Url, uploadInfo.Id)
+	printf("    %s/#/?id=%s\n\n\n", config.Config.Url, uploadInfo.ID)
 
 	if config.Config.Archive {
 
@@ -142,7 +142,7 @@ Options:
 		}
 		pipeReader.CloseWithError(err)
 
-		uploadInfo.Files[file.Id] = file
+		uploadInfo.Files[file.ID] = file
 	} else {
 		if len(config.Files) == 0 {
 			// Upload from STDIN
@@ -157,7 +157,7 @@ Options:
 				return
 			}
 
-			uploadInfo.Files[file.Id] = file
+			uploadInfo.Files[file.ID] = file
 		} else {
 			// Upload individual files
 			var wg sync.WaitGroup
@@ -172,7 +172,7 @@ Options:
 						return
 					}
 
-					uploadInfo.Files[file.Id] = file
+					uploadInfo.Files[file.ID] = file
 				}(fileToUpload)
 			}
 			wg.Wait()
@@ -296,7 +296,7 @@ func upload(uploadInfo *common.Upload, name string, size int64, reader io.Reader
 	}()
 
 	var Url *url.URL
-	Url, err = url.Parse(config.Config.Url + "/upload/" + uploadInfo.Id + "/file")
+	Url, err = url.Parse(config.Config.Url + "/upload/" + uploadInfo.ID + "/file")
 	if err != nil {
 		return
 	}
@@ -350,7 +350,7 @@ func getFileCommand(upload *common.Upload, file *common.File) (command string) {
 		command += config.Config.DownloadBinary
 	}
 
-	command += fmt.Sprintf(" %s/file/%s/%s/%s", config.Config.Url, upload.Id, file.Id, file.Name)
+	command += fmt.Sprintf(" %s/file/%s/%s/%s", config.Config.Url, upload.ID, file.ID, file.Name)
 
 	// If Ssl
 	if config.Config.Secure {
@@ -372,7 +372,7 @@ func getFileCommand(upload *common.Upload, file *common.File) (command string) {
 }
 
 func getFileUrl(upload *common.Upload, file *common.File) (fileUrl string) {
-	fileUrl += fmt.Sprintf("%s/file/%s/%s/%s", config.Config.Url, upload.Id, file.Id, file.Name)
+	fileUrl += fmt.Sprintf("%s/file/%s/%s/%s", config.Config.Url, upload.ID, file.ID, file.Name)
 	return
 }
 

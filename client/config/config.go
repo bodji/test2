@@ -51,7 +51,7 @@ var Upload *common.Upload
 var Files []*FileToUpload
 
 var CryptoBackend crypto.CryptoBackend
-var ArchiveBackend archive.ArchiveBackend
+var ArchiveBackend archive.Backend
 
 var LongestFilenameSize int
 
@@ -230,7 +230,7 @@ func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 	}
 
 	// Upload time to live
-	Upload.Ttl = Config.Ttl
+	Upload.TTL = Config.Ttl
 	if arguments["--ttl"] != nil && arguments["--ttl"].(string) != "" {
 		ttlStr := arguments["--ttl"].(string)
 		mul := 1
@@ -248,7 +248,7 @@ func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 		if err != nil {
 			return fmt.Errorf("Invalid TTL %s", arguments["--ttl"].(string))
 		}
-		Upload.Ttl = ttl * mul
+		Upload.TTL = ttl * mul
 	}
 
 	// Do we need a crypto backend ?

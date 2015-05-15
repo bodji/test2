@@ -81,7 +81,7 @@ func (ob *OpenSSLBackend) Configure(arguments map[string]interface{}) (err error
 			}
 		}
 	} else {
-		ob.Config.Passphrase = common.GenerateRandomId(25)
+		ob.Config.Passphrase = common.GenerateRandomID(25)
 		fmt.Println("Passphrase : " + ob.Config.Passphrase)
 	}
 	if arguments["--secure-options"] != nil && arguments["--secure-options"].(string) != "" {
