@@ -27,43 +27,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 **/
 
-package common
+package file
 
 import (
-	"fmt"
-
 	"github.com/root-gg/utils"
 )
 
-// Result object
-type Result struct {
-	Message string      `json:"message"`
-	Value   interface{} `json:"value"`
+// BackendConfig describes configuration for File Databackend
+type BackendConfig struct {
+	Directory string
 }
 
-// NewResult takes a message and a interface and
-// creates a new result object with them
-func NewResult(message string, value interface{}) (r *Result) {
-	r = new(Result)
-	r.Message = message
-	r.Value = value
+// NewFileBackendConfig instantiate a new default configuration
+// and override it with configuration passed as argument
+func NewFileBackendConfig(config map[string]interface{}) (fb *BackendConfig) {
+	fb = new(BackendConfig)
+	fb.Directory = "files" // Default upload directory is ./files
+	utils.Assign(fb, config)
 	return
-}
-
-// ToJSON serialize result object to JSON
-func (result *Result) ToJSON() []byte {
-	j, err := utils.ToJson(result)
-	if err != nil {
-		msg := fmt.Sprintf("Unable to serialize result %s to json : %s", result.Message, err)
-		Log().Warning(msg)
-		return []byte("{message:\"" + msg + "\"}")
-	}
-
-	return j
-}
-
-// ToJSONString is the same as ToJson but it returns
-// a string instead of a byte array
-func (result *Result) ToJSONString() string {
-	return string(result.ToJSON())
 }

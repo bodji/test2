@@ -128,7 +128,7 @@ func (mmb *MongoMetadataBackend) AddOrUpdateFile(ctx *common.PlikContext, upload
 	session := mmb.session.Copy()
 	defer session.Close()
 	collection := session.DB(mmb.config.Database).C(mmb.config.Collection)
-	err = collection.Update(bson.M{"id": upload.Id}, bson.M{"$set": bson.M{"files." + file.Id: file}})
+	err = collection.Update(bson.M{"id": upload.ID}, bson.M{"$set": bson.M{"files." + file.ID: file}})
 	if err != nil {
 		err = ctx.EWarningf("Unable to get metadata from mongodb : %s", err)
 	}
@@ -140,7 +140,7 @@ func (mmb *MongoMetadataBackend) RemoveFile(ctx *common.PlikContext, upload *com
 	session := mmb.session.Copy()
 	defer session.Close()
 	collection := session.DB(mmb.config.Database).C(mmb.config.Collection)
-	err = collection.Update(bson.M{"id": upload.Id}, bson.M{"$unset": bson.M{"files." + file.Name: ""}})
+	err = collection.Update(bson.M{"id": upload.ID}, bson.M{"$unset": bson.M{"files." + file.Name: ""}})
 	if err != nil {
 		err = ctx.EWarningf("Unable to get remove file from mongodb : %s", err)
 	}
@@ -152,7 +152,7 @@ func (mmb *MongoMetadataBackend) Remove(ctx *common.PlikContext, upload *common.
 	session := mmb.session.Copy()
 	defer session.Close()
 	collection := session.DB(mmb.config.Database).C(mmb.config.Collection)
-	err = collection.Remove(bson.M{"id": upload.Id})
+	err = collection.Remove(bson.M{"id": upload.ID})
 	if err != nil {
 		err = ctx.EWarningf("Unable to get remove file from mongodb : %s", err)
 	}
@@ -178,7 +178,7 @@ func (mmb *MongoMetadataBackend) GetUploadsToRemove(ctx *common.PlikContext) (id
 
 	// Append all ids to the toRemove list
 	for _, upload := range uploads {
-		ids = append(ids, upload.Id)
+		ids = append(ids, upload.ID)
 	}
 
 	return

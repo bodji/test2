@@ -76,7 +76,7 @@ func (fmb *FileMetadataBackend) Create(ctx *common.PlikContext, upload *common.U
 	defer ctx.Finalize(err)
 
 	// Get metadata file path
-	directory := fmb.Config.Directory + "/" + upload.Id[:2] + "/" + upload.Id
+	directory := fmb.Config.Directory + "/" + upload.ID[:2] + "/" + upload.ID
 	metadataFile := directory + "/.config"
 
 	// Serialize metadata to json
@@ -149,14 +149,14 @@ func (fmb *FileMetadataBackend) AddOrUpdateFile(ctx *common.PlikContext, upload 
 	defer ctx.Finalize(err)
 
 	// avoid race condition
-	Lock(upload.Id)
-	defer Unlock(upload.Id)
+	Lock(upload.ID)
+	defer Unlock(upload.ID)
 
 	// The first thing to do is to reload the file from disk
-	upload, err = fmb.Get(ctx.Fork("reload metadata"), upload.Id)
+	upload, err = fmb.Get(ctx.Fork("reload metadata"), upload.ID)
 
 	// Add file metadata to upload metadata
-	upload.Files[file.Id] = file
+	upload.Files[file.ID] = file
 
 	// Serialize metadata to json
 	b, err := json.MarshalIndent(upload, "", "    ")
@@ -166,7 +166,7 @@ func (fmb *FileMetadataBackend) AddOrUpdateFile(ctx *common.PlikContext, upload 
 	}
 
 	// Get metadata file path
-	directory := fmb.Config.Directory + "/" + upload.Id[:2] + "/" + upload.Id
+	directory := fmb.Config.Directory + "/" + upload.ID[:2] + "/" + upload.ID
 	metadataFile := directory + "/.config"
 
 	// Create directory if needed
@@ -207,11 +207,11 @@ func (fmb *FileMetadataBackend) RemoveFile(ctx *common.PlikContext, upload *comm
 	defer ctx.Finalize(err)
 
 	// avoid race condition
-	Lock(upload.Id)
-	defer Unlock(upload.Id)
+	Lock(upload.ID)
+	defer Unlock(upload.ID)
 
 	// The first thing to do is to reload the file from disk
-	upload, err = fmb.Get(ctx.Fork("reload metadata"), upload.Id)
+	upload, err = fmb.Get(ctx.Fork("reload metadata"), upload.ID)
 
 	// Remove file metadata from upload metadata
 	delete(upload.Files, file.Name)
@@ -224,7 +224,7 @@ func (fmb *FileMetadataBackend) RemoveFile(ctx *common.PlikContext, upload *comm
 	}
 
 	// Get metadata file path
-	directory := fmb.Config.Directory + "/" + upload.Id[:2] + "/" + upload.Id
+	directory := fmb.Config.Directory + "/" + upload.ID[:2] + "/" + upload.ID
 	metadataFile := directory + "/.config"
 
 	// Override metadata file
@@ -255,7 +255,7 @@ func (fmb *FileMetadataBackend) RemoveFile(ctx *common.PlikContext, upload *comm
 func (fmb *FileMetadataBackend) Remove(ctx *common.PlikContext, upload *common.Upload) (err error) {
 
 	// Get metadata file path
-	directory := fmb.Config.Directory + "/" + upload.Id[:2] + "/" + upload.Id
+	directory := fmb.Config.Directory + "/" + upload.ID[:2] + "/" + upload.ID
 	metadataFile := directory + "/.config"
 
 	// Test if file exist
@@ -281,7 +281,7 @@ func (fmb *FileMetadataBackend) GetUploadsToRemove(ctx *common.PlikContext) (ids
 	// Look for uploads older than MaxTTL to schedule them for removal ( defaults to 30 days )
 	// This is suboptimal as some of them might have an inferior TTL but it's
 	// a lot cheaper than opening and deserializing each metadata file.
-	if common.Config.MaxTtl > 0 {
+	if common.Config.MaxTTL > 0 {
 		ids = make([]string, 0)
 
 		// Let's call our friend find
@@ -290,7 +290,7 @@ func (fmb *FileMetadataBackend) GetUploadsToRemove(ctx *common.PlikContext) (ids
 		args = append(args, "-mindepth", "2") // Remember that the upload directory
 		args = append(args, "-maxdepth", "2") // structure is splitted in two
 		args = append(args, "-type", "d")
-		args = append(args, "-cmin", "+"+strconv.Itoa(common.Config.MaxTtl))
+		args = append(args, "-cmin", "+"+strconv.Itoa(common.Config.MaxTTL))
 		ctx.Debugf("Executing command : %s", strings.Join(args, " "))
 
 		// Exec find command

@@ -40,35 +40,26 @@ import (
 	"strings"
 
 	"github.com/root-gg/plik/server/common"
-	"github.com/root-gg/utils"
 )
 
-var client = http.Client{}
+var (
+	client = http.Client{}
+)
 
-type WeedFsBackendConfig struct {
-	MasterUrl          string
-	ReplicationPattern string
+type Backend struct {
+	Config *BackendConfig
 }
 
-func NewWeedFsBackendConfig(config map[string]interface{}) (weedFs *WeedFsBackendConfig) {
-	weedFs = new(WeedFsBackendConfig)
-	weedFs.MasterUrl = "http://127.0.0.1:9333"
-	weedFs.ReplicationPattern = "000"
-	utils.Assign(weedFs, config)
-	return
-}
-
-type WeedFsBackend struct {
-	Config *WeedFsBackendConfig
-}
-
-func NewWeedFsBackend(config map[string]interface{}) (weedFs *WeedFsBackend) {
-	weedFs = new(WeedFsBackend)
+// NewWeedFsBackend instantiate a new WeedFS Data Backend
+// from configuration passed as argument
+func NewWeedFsBackend(config map[string]interface{}) (weedFs *Backend) {
+	weedFs = new(Backend)
 	weedFs.Config = NewWeedFsBackendConfig(config)
 	return
 }
 
-func (weedFs *WeedFsBackend) GetFile(ctx *common.PlikContext, upload *common.Upload, id string) (reader io.ReadCloser, err error) {
+// GetFile implementation for WeedFS Data Backend
+func (weedFs *Backend) GetFile(ctx *common.PlikContext, upload *common.Upload, id string) (reader io.ReadCloser, err error) {
 	defer ctx.Finalize(err)
 
 	file := upload.Files[id]
@@ -81,11 +72,11 @@ func (weedFs *WeedFsBackend) GetFile(ctx *common.PlikContext, upload *common.Upl
 	weedFsVolume := file.BackendDetails["WeedFsVolume"].(string)
 
 	// Get WeedFS file id from upload metadata
-	if file.BackendDetails["WeedFsFileId"] == nil {
+	if file.BackendDetails["WeedFsFileID"] == nil {
 		err = ctx.EWarningf("Missing WeedFS file id from backend details")
 		return
 	}
-	weedFsFileId := file.BackendDetails["WeedFsFileId"].(string)
+	WeedFsFileID := file.BackendDetails["WeedFsFileID"].(string)
 
 	// Get WeedFS volume url
 	volumeUrl, err := weedFs.getVolumeUrl(ctx, weedFsVolume)
@@ -96,7 +87,7 @@ func (weedFs *WeedFsBackend) GetFile(ctx *common.PlikContext, upload *common.Upl
 
 	// Get file from WeedFS volume, the response will be
 	// piped directly to the client response body
-	fileCompleteUrl := "http://" + volumeUrl + "/" + weedFsVolume + "," + weedFsFileId
+	fileCompleteUrl := "http://" + volumeUrl + "/" + weedFsVolume + "," + WeedFsFileID
 	ctx.Infof("Getting WeedFS file from : %s", fileCompleteUrl)
 	resp, err := http.Get(fileCompleteUrl)
 	if err != nil {
@@ -107,7 +98,8 @@ func (weedFs *WeedFsBackend) GetFile(ctx *common.PlikContext, upload *common.Upl
 	return resp.Body, nil
 }
 
-func (weedFs *WeedFsBackend) AddFile(ctx *common.PlikContext, upload *common.Upload, file *common.File, fileReader io.Reader) (backendDetails map[string]interface{}, err error) {
+// AddFile implementation for WeedFS Data Backend
+func (weedFs *Backend) AddFile(ctx *common.PlikContext, upload *common.Upload, file *common.File, fileReader io.Reader) (backendDetails map[string]interface{}, err error) {
 	defer func() {
 		if err != nil {
 			ctx.Finalize(err)
@@ -117,7 +109,7 @@ func (weedFs *WeedFsBackend) AddFile(ctx *common.PlikContext, upload *common.Upl
 	backendDetails = make(map[string]interface{})
 
 	// Request a volume and a new file id from a WeedFS master
-	assignUrl := weedFs.Config.MasterUrl + "/dir/assign?replication=" + weedFs.Config.ReplicationPattern
+	assignUrl := weedFs.Config.MasterURL + "/dir/assign?replication=" + weedFs.Config.ReplicationPattern
 	ctx.Debugf("Getting volume and file id from WeedFS master at %s", assignUrl)
 
 	resp, err := client.Post(assignUrl, "", nil)
@@ -146,7 +138,7 @@ func (weedFs *WeedFsBackend) AddFile(ctx *common.PlikContext, upload *common.Upl
 		splitVolumeFromId := strings.Split(responseMap["fid"].(string), ",")
 		if len(splitVolumeFromId) > 1 {
 			backendDetails["WeedFsVolume"] = splitVolumeFromId[0]
-			backendDetails["WeedFsFileId"] = splitVolumeFromId[1]
+			backendDetails["WeedFsFileID"] = splitVolumeFromId[1]
 		} else {
 			err = ctx.EWarningf("Invalid fid from WeedFS master response \"%s\" at %s", bodyStr, assignUrl)
 			return
@@ -161,15 +153,15 @@ func (weedFs *WeedFsBackend) AddFile(ctx *common.PlikContext, upload *common.Upl
 		err = ctx.EWarningf("Missing publicUrl from WeedFS master response \"%s\" at %s", bodyStr, assignUrl)
 		return
 	}
-	fileUrl := "http://" + responseMap["publicUrl"].(string) + "/" + responseMap["fid"].(string)
+	fileURL := "http://" + responseMap["publicUrl"].(string) + "/" + responseMap["fid"].(string)
 	var Url *url.URL
-	Url, err = url.Parse(fileUrl)
+	Url, err = url.Parse(fileURL)
 	if err != nil {
-		err = ctx.EWarningf("Unable to construct WeedFS upload url \"%s\"", fileUrl)
+		err = ctx.EWarningf("Unable to construct WeedFS upload url \"%s\"", fileURL)
 		return
 	}
 
-	ctx.Infof("Uploading file %s to volume %s to WeedFS at %s", backendDetails["WeedFsFileId"], backendDetails["WeedFsVolume"], fileUrl)
+	ctx.Infof("Uploading file %s to volume %s to WeedFS at %s", backendDetails["WeedFsFileID"], backendDetails["WeedFsVolume"], fileURL)
 
 	// Pipe the uploaded file from the client request body
 	// to the WeedFS request body without buffering
@@ -214,7 +206,8 @@ func (weedFs *WeedFsBackend) AddFile(ctx *common.PlikContext, upload *common.Upl
 	return
 }
 
-func (weedFs *WeedFsBackend) RemoveFile(ctx *common.PlikContext, upload *common.Upload, id string) (err error) {
+// RemoveFile implementation for WeedFS Data Backend
+func (weedFs *Backend) RemoveFile(ctx *common.PlikContext, upload *common.Upload, id string) (err error) {
 	defer ctx.Finalize(err)
 
 	// Get file metadata
@@ -227,11 +220,11 @@ func (weedFs *WeedFsBackend) RemoveFile(ctx *common.PlikContext, upload *common.
 	}
 	weedFsVolume := file.BackendDetails["WeedFsVolume"].(string)
 
-	if file.BackendDetails["WeedFsFileId"] == nil {
+	if file.BackendDetails["WeedFsFileID"] == nil {
 		err = ctx.EWarningf("Missing WeedFS file id from backend details")
 		return
 	}
-	weedFsFileId := file.BackendDetails["WeedFsFileId"].(string)
+	WeedFsFileID := file.BackendDetails["WeedFsFileID"].(string)
 
 	// Get the WeedFS volume url
 	volumeUrl, err := weedFs.getVolumeUrl(ctx, weedFsVolume)
@@ -240,15 +233,15 @@ func (weedFs *WeedFsBackend) RemoveFile(ctx *common.PlikContext, upload *common.
 	}
 
 	// Construct Url
-	fileUrl := "http://" + volumeUrl + "/" + weedFsVolume + "," + weedFsFileId
+	fileURL := "http://" + volumeUrl + "/" + weedFsVolume + "," + WeedFsFileID
 	var Url *url.URL
-	Url, err = url.Parse(fileUrl)
+	Url, err = url.Parse(fileURL)
 	if err != nil {
-		err = ctx.EWarningf("Unable to construct WeedFS url \"%s\"", fileUrl)
+		err = ctx.EWarningf("Unable to construct WeedFS url \"%s\"", fileURL)
 		return
 	}
 
-	ctx.Infof("Removing file %s from WeedFS volume %s at %s", weedFsFileId, weedFsVolume, fileUrl)
+	ctx.Infof("Removing file %s from WeedFS volume %s at %s", WeedFsFileID, weedFsVolume, fileURL)
 
 	// Remove file from WeedFS volume
 	req, err := http.NewRequest("DELETE", Url.String(), nil)
@@ -266,11 +259,13 @@ func (weedFs *WeedFsBackend) RemoveFile(ctx *common.PlikContext, upload *common.
 	return
 }
 
-func (weedFs *WeedFsBackend) RemoveUpload(ctx *common.PlikContext, upload *common.Upload) (err error) {
+// RemoveUpload implementation for WeedFS Data Backend
+// Iterates on every file and call RemoveFile
+func (weedFs *Backend) RemoveUpload(ctx *common.PlikContext, upload *common.Upload) (err error) {
 	defer ctx.Finalize(err)
 
-	for fileId := range upload.Files {
-		err = weedFs.RemoveFile(ctx.Fork("remove file"), upload, fileId)
+	for fileID := range upload.Files {
+		err = weedFs.RemoveFile(ctx.Fork("remove file"), upload, fileID)
 		if err != nil {
 			return
 		}
@@ -279,12 +274,12 @@ func (weedFs *WeedFsBackend) RemoveUpload(ctx *common.PlikContext, upload *commo
 	return nil
 }
 
-func (weedFs *WeedFsBackend) getVolumeUrl(ctx *common.PlikContext, volumeId string) (url string, err error) {
+func (weedFs *Backend) getVolumeUrl(ctx *common.PlikContext, volumeId string) (url string, err error) {
 	timer := ctx.Time("get volume url")
 	defer timer.Stop()
 
 	// Ask a WeedFS master the volume urls
-	url = weedFs.Config.MasterUrl + "/dir/lookup?volumeId=" + volumeId
+	url = weedFs.Config.MasterURL + "/dir/lookup?volumeId=" + volumeId
 	resp, err := client.Post(url, "", nil)
 	if err != nil {
 		err = ctx.EWarningf("Unable to get volume %s url from WeedFS master at %s : %s", volumeId, url, err)
@@ -309,7 +304,7 @@ func (weedFs *WeedFsBackend) getVolumeUrl(ctx *common.PlikContext, volumeId stri
 
 	// As volumes can be replicated there may be more than one
 	// available url for a given volume
-	urlsFound := make([]string, 0)
+	var urlsFound []string
 	if responseMap["locations"] == nil {
 		err = ctx.EWarningf("Missing url from WeedFS master response \"%s\" at %s", bodyStr, url)
 		return

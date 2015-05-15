@@ -40,6 +40,8 @@ import (
 
 var dataBackend DataBackend
 
+// DataBackend interface describes methods that data backends
+// must implements to be compatible with plik.
 type DataBackend interface {
 	GetFile(ctx *common.PlikContext, u *common.Upload, id string) (rc io.ReadCloser, err error)
 	AddFile(ctx *common.PlikContext, u *common.Upload, file *common.File, fileReader io.Reader) (backendDetails map[string]interface{}, err error)
@@ -47,6 +49,8 @@ type DataBackend interface {
 	RemoveUpload(ctx *common.PlikContext, u *common.Upload) (err error)
 }
 
+// GetDataBackend is a singleton pattern.
+// Init static backend if not already and return it
 func GetDataBackend() DataBackend {
 	if dataBackend == nil {
 		Initialize()
@@ -54,6 +58,7 @@ func GetDataBackend() DataBackend {
 	return dataBackend
 }
 
+// Initialize backend from type found in configuration
 func Initialize() {
 	if dataBackend == nil {
 		switch common.Config.DataBackend {

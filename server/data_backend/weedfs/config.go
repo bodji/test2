@@ -1,6 +1,6 @@
 /**
 
-    Plik upload server
+    Plik upload client
 
 The MIT License (MIT)
 
@@ -27,43 +27,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 **/
 
-package common
+package weedfs
 
 import (
-	"fmt"
-
 	"github.com/root-gg/utils"
 )
 
-// Result object
-type Result struct {
-	Message string      `json:"message"`
-	Value   interface{} `json:"value"`
+// BackendConfig describes configuration for WeedFS Databackend
+type BackendConfig struct {
+	MasterURL          string
+	ReplicationPattern string
 }
 
-// NewResult takes a message and a interface and
-// creates a new result object with them
-func NewResult(message string, value interface{}) (r *Result) {
-	r = new(Result)
-	r.Message = message
-	r.Value = value
+// NewWeedFsBackendConfig instantiate a new default configuration
+// and override it with configuration passed as argument
+func NewWeedFsBackendConfig(config map[string]interface{}) (weedFs *BackendConfig) {
+	weedFs = new(BackendConfig)
+	weedFs.MasterURL = "http://127.0.0.1:9333"
+	weedFs.ReplicationPattern = "000"
+	utils.Assign(weedFs, config)
 	return
-}
-
-// ToJSON serialize result object to JSON
-func (result *Result) ToJSON() []byte {
-	j, err := utils.ToJson(result)
-	if err != nil {
-		msg := fmt.Sprintf("Unable to serialize result %s to json : %s", result.Message, err)
-		Log().Warning(msg)
-		return []byte("{message:\"" + msg + "\"}")
-	}
-
-	return j
-}
-
-// ToJSONString is the same as ToJson but it returns
-// a string instead of a byte array
-func (result *Result) ToJSONString() string {
-	return string(result.ToJSON())
 }
