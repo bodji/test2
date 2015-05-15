@@ -53,18 +53,38 @@ $ make clients
 ### API
 Plik server expose a RESTfull API to manage uploads and get files :
 
-Managing uploads :
+Creating upload and uploading files :
+ 
    - **POST**        /upload
-   - **GET**         /upload/{uploadid}
+     - Params (json object in request body) :
+      - oneshot (bool)
+      - removable (bool)
+      - ttl (int)
+      - login (string)
+      - password (string)
+     - Return :
+         JSON formatted upload object.
+         Important fields :
+           - id (required to upload files)
+           - uploadToken (required to upload files)
+   - **POST** /upload/:uploadid:/file
+   Body must be a multipart request with a part named "file" containing file data
+   Returning a JSON object of newly uploaded file
+   
+   - **DELETE** /upload/:uploadid:/file/:fileid:
+   Delete file from the upload. Upload must have "removable" option enabled.
+ 
+Get files :
 
-Managing files :
-   - **POST**        /upload/{uploadid}/file             (request must be multipart, with a part named "file" for file data)
-   - **GET/HEAD**    /upload/{uploadid}/file/{fileid}    (head request just print headers, it does not count as a download (for oneShot uploads))
-   - **DELETE**      /upload/{uploadid}/file/{fileid}    (only works if upload has "removable" option)
+  - **HEAD** /file/:uploadid/:fileid:/:filename:
+   Returning only HTTP headers. Usefull to know Content-Type and Content-Type of file without downloading it. Especially if upload has OneShot option enabled.
 
-Nice links :
-   - **GET/HEAD**    /file/{uploadid}/{fileid}/{filename}
-   - **GET**         /file/{uploadid}/{fileid}/{filename}/yubikey/{yubikey}
+  - **GET**  /file/:uploadid/:fileid:/:filename:
+  Download specified file from upload. Filename **MUST** be right.
+  In a browser, it will try to display file (if it's a jpeg for example). You can force download with dl=1 in url.
+
+  - **GET**  /file/:uploadid/:fileid:/:filename:/yubikey/:yubikeyOtp:
+  Same as previous call, except that you can specify a Yubikey OTP in the URL if the upload is Yubikey restricted.
 
 
 Examples :
