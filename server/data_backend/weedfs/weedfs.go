@@ -46,6 +46,7 @@ var (
 	client = http.Client{}
 )
 
+// Backend object
 type Backend struct {
 	Config *BackendConfig
 }
@@ -79,7 +80,7 @@ func (weedFs *Backend) GetFile(ctx *common.PlikContext, upload *common.Upload, i
 	WeedFsFileID := file.BackendDetails["WeedFsFileID"].(string)
 
 	// Get WeedFS volume url
-	volumeUrl, err := weedFs.getVolumeUrl(ctx, weedFsVolume)
+	volumeURL, err := weedFs.getvolumeURL(ctx, weedFsVolume)
 	if err != nil {
 		err = ctx.EWarningf("Unable to get WeedFS volume url %s : %s", weedFsVolume)
 		return
@@ -87,11 +88,11 @@ func (weedFs *Backend) GetFile(ctx *common.PlikContext, upload *common.Upload, i
 
 	// Get file from WeedFS volume, the response will be
 	// piped directly to the client response body
-	fileCompleteUrl := "http://" + volumeUrl + "/" + weedFsVolume + "," + WeedFsFileID
-	ctx.Infof("Getting WeedFS file from : %s", fileCompleteUrl)
-	resp, err := http.Get(fileCompleteUrl)
+	fileCompleteURL := "http://" + volumeURL + "/" + weedFsVolume + "," + WeedFsFileID
+	ctx.Infof("Getting WeedFS file from : %s", fileCompleteURL)
+	resp, err := http.Get(fileCompleteURL)
 	if err != nil {
-		err = ctx.EWarningf("Error while downloading file from WeedFS at %s : %s", fileCompleteUrl, err)
+		err = ctx.EWarningf("Error while downloading file from WeedFS at %s : %s", fileCompleteURL, err)
 		return
 	}
 
@@ -109,12 +110,12 @@ func (weedFs *Backend) AddFile(ctx *common.PlikContext, upload *common.Upload, f
 	backendDetails = make(map[string]interface{})
 
 	// Request a volume and a new file id from a WeedFS master
-	assignUrl := weedFs.Config.MasterURL + "/dir/assign?replication=" + weedFs.Config.ReplicationPattern
-	ctx.Debugf("Getting volume and file id from WeedFS master at %s", assignUrl)
+	assignURL := weedFs.Config.MasterURL + "/dir/assign?replication=" + weedFs.Config.ReplicationPattern
+	ctx.Debugf("Getting volume and file id from WeedFS master at %s", assignURL)
 
-	resp, err := client.Post(assignUrl, "", nil)
+	resp, err := client.Post(assignURL, "", nil)
 	if err != nil {
-		err = ctx.EWarningf("Error while getting id from WeedFS master at %s : %s", assignUrl, err)
+		err = ctx.EWarningf("Error while getting id from WeedFS master at %s : %s", assignURL, err)
 		return
 	}
 	defer resp.Body.Close()
@@ -122,7 +123,7 @@ func (weedFs *Backend) AddFile(ctx *common.PlikContext, upload *common.Upload, f
 	// Read response body
 	bodyStr, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		err = ctx.EWarningf("Unable to read response body from WeedFS master at %s : %s", assignUrl, err)
+		err = ctx.EWarningf("Unable to read response body from WeedFS master at %s : %s", assignURL, err)
 		return
 	}
 
@@ -130,32 +131,32 @@ func (weedFs *Backend) AddFile(ctx *common.PlikContext, upload *common.Upload, f
 	responseMap := make(map[string]interface{})
 	err = json.Unmarshal(bodyStr, &responseMap)
 	if err != nil {
-		err = ctx.EWarningf("Unable to unserialize json response \"%s\" from WeedFS master at %s : %s", bodyStr, assignUrl, err)
+		err = ctx.EWarningf("Unable to unserialize json response \"%s\" from WeedFS master at %s : %s", bodyStr, assignURL, err)
 		return
 	}
 
 	if responseMap["fid"] != nil && responseMap["fid"].(string) != "" {
-		splitVolumeFromId := strings.Split(responseMap["fid"].(string), ",")
-		if len(splitVolumeFromId) > 1 {
-			backendDetails["WeedFsVolume"] = splitVolumeFromId[0]
-			backendDetails["WeedFsFileID"] = splitVolumeFromId[1]
+		splitVolumeFromID := strings.Split(responseMap["fid"].(string), ",")
+		if len(splitVolumeFromID) > 1 {
+			backendDetails["WeedFsVolume"] = splitVolumeFromID[0]
+			backendDetails["WeedFsFileID"] = splitVolumeFromID[1]
 		} else {
-			err = ctx.EWarningf("Invalid fid from WeedFS master response \"%s\" at %s", bodyStr, assignUrl)
+			err = ctx.EWarningf("Invalid fid from WeedFS master response \"%s\" at %s", bodyStr, assignURL)
 			return
 		}
 	} else {
-		err = ctx.EWarningf("Missing fid from WeedFS master response \"%s\" at %", bodyStr, assignUrl)
+		err = ctx.EWarningf("Missing fid from WeedFS master response \"%s\" at %", bodyStr, assignURL)
 		return
 	}
 
 	// Construct upload url
 	if responseMap["publicUrl"] == nil || responseMap["publicUrl"].(string) == "" {
-		err = ctx.EWarningf("Missing publicUrl from WeedFS master response \"%s\" at %s", bodyStr, assignUrl)
+		err = ctx.EWarningf("Missing publicUrl from WeedFS master response \"%s\" at %s", bodyStr, assignURL)
 		return
 	}
 	fileURL := "http://" + responseMap["publicUrl"].(string) + "/" + responseMap["fid"].(string)
-	var Url *url.URL
-	Url, err = url.Parse(fileURL)
+	var URL *url.URL
+	URL, err = url.Parse(fileURL)
 	if err != nil {
 		err = ctx.EWarningf("Unable to construct WeedFS upload url \"%s\"", fileURL)
 		return
@@ -190,15 +191,15 @@ func (weedFs *Backend) AddFile(ctx *common.PlikContext, upload *common.Upload, f
 	}()
 
 	// Upload file to WeedFS volume
-	req, err := http.NewRequest("PUT", Url.String(), pipeReader)
+	req, err := http.NewRequest("PUT", URL.String(), pipeReader)
 	if err != nil {
-		err = ctx.EWarningf("Unable to create PUT request to %s : %s", Url.String(), err)
+		err = ctx.EWarningf("Unable to create PUT request to %s : %s", URL.String(), err)
 		return
 	}
 	req.Header.Add("Content-Type", multipartWriter.FormDataContentType())
 	resp, err = client.Do(req)
 	if err != nil {
-		err = ctx.EWarningf("Unable to upload file to WeedFS at %s : %s", Url.String(), err)
+		err = ctx.EWarningf("Unable to upload file to WeedFS at %s : %s", URL.String(), err)
 		return
 	}
 	defer resp.Body.Close()
@@ -227,13 +228,13 @@ func (weedFs *Backend) RemoveFile(ctx *common.PlikContext, upload *common.Upload
 	WeedFsFileID := file.BackendDetails["WeedFsFileID"].(string)
 
 	// Get the WeedFS volume url
-	volumeUrl, err := weedFs.getVolumeUrl(ctx, weedFsVolume)
+	volumeURL, err := weedFs.getvolumeURL(ctx, weedFsVolume)
 	if err != nil {
 		return
 	}
 
 	// Construct Url
-	fileURL := "http://" + volumeUrl + "/" + weedFsVolume + "," + WeedFsFileID
+	fileURL := "http://" + volumeURL + "/" + weedFsVolume + "," + WeedFsFileID
 	var Url *url.URL
 	Url, err = url.Parse(fileURL)
 	if err != nil {
@@ -274,7 +275,7 @@ func (weedFs *Backend) RemoveUpload(ctx *common.PlikContext, upload *common.Uplo
 	return nil
 }
 
-func (weedFs *Backend) getVolumeUrl(ctx *common.PlikContext, volumeId string) (url string, err error) {
+func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeId string) (url string, err error) {
 	timer := ctx.Time("get volume url")
 	defer timer.Stop()
 
@@ -313,8 +314,8 @@ func (weedFs *Backend) getVolumeUrl(ctx *common.PlikContext, volumeId string) (u
 		for _, location := range locationsArray {
 			if locationInfos, ok := location.(map[string]interface{}); ok {
 				if locationInfos["publicUrl"] != nil {
-					if foundUrl, ok := locationInfos["publicUrl"].(string); ok {
-						urlsFound = append(urlsFound, foundUrl)
+					if foundURL, ok := locationInfos["publicUrl"].(string); ok {
+						urlsFound = append(urlsFound, foundURL)
 					}
 				}
 			}

@@ -105,7 +105,7 @@ func (sb *Backend) AddFile(ctx *common.PlikContext, upload *common.Upload, file 
 }
 
 // RemoveFile implementation for Swift Data Backend
-func (sb *Backend) RemoveFile(ctx *common.PlikContext, upload *common.Upload, fileId string) (err error) {
+func (sb *Backend) RemoveFile(ctx *common.PlikContext, upload *common.Upload, fileID string) (err error) {
 	defer ctx.Finalize(err)
 
 	err = sb.auth(ctx)
@@ -113,7 +113,7 @@ func (sb *Backend) RemoveFile(ctx *common.PlikContext, upload *common.Upload, fi
 		return
 	}
 
-	uuid := sb.getFileID(upload, fileId)
+	uuid := sb.getFileID(upload, fileID)
 	err = sb.connection.ObjectDelete(sb.config.Container, uuid)
 	if err != nil {
 		err = ctx.EWarningf("Unable to remove object %s : %s", uuid, err)
@@ -133,8 +133,8 @@ func (sb *Backend) RemoveUpload(ctx *common.PlikContext, upload *common.Upload) 
 		return
 	}
 
-	for fileId := range upload.Files {
-		uuid := sb.getFileID(upload, fileId)
+	for fileID := range upload.Files {
+		uuid := sb.getFileID(upload, fileID)
 		err = sb.connection.ObjectDelete(sb.config.Container, uuid)
 		if err != nil {
 			err = ctx.EWarningf("Unable to remove object %s : %s", uuid, err)
