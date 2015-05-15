@@ -235,8 +235,8 @@ func (weedFs *Backend) RemoveFile(ctx *common.PlikContext, upload *common.Upload
 
 	// Construct Url
 	fileURL := "http://" + volumeURL + "/" + weedFsVolume + "," + WeedFsFileID
-	var Url *url.URL
-	Url, err = url.Parse(fileURL)
+	var URL *url.URL
+	URL, err = url.Parse(fileURL)
 	if err != nil {
 		err = ctx.EWarningf("Unable to construct WeedFS url \"%s\"", fileURL)
 		return
@@ -245,14 +245,14 @@ func (weedFs *Backend) RemoveFile(ctx *common.PlikContext, upload *common.Upload
 	ctx.Infof("Removing file %s from WeedFS volume %s at %s", WeedFsFileID, weedFsVolume, fileURL)
 
 	// Remove file from WeedFS volume
-	req, err := http.NewRequest("DELETE", Url.String(), nil)
+	req, err := http.NewRequest("DELETE", URL.String(), nil)
 	if err != nil {
-		err = ctx.EWarningf("Unable to create DELETE request to %s : %s", Url.String(), err)
+		err = ctx.EWarningf("Unable to create DELETE request to %s : %s", URL.String(), err)
 		return
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		err = ctx.EWarningf("Unable to delete file from WeedFS volume at %s : %s", Url.String(), err)
+		err = ctx.EWarningf("Unable to delete file from WeedFS volume at %s : %s", URL.String(), err)
 		return
 	}
 	resp.Body.Close()
@@ -275,15 +275,15 @@ func (weedFs *Backend) RemoveUpload(ctx *common.PlikContext, upload *common.Uplo
 	return nil
 }
 
-func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeId string) (url string, err error) {
+func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeId string) (URL string, err error) {
 	timer := ctx.Time("get volume url")
 	defer timer.Stop()
 
 	// Ask a WeedFS master the volume urls
-	url = weedFs.Config.MasterURL + "/dir/lookup?volumeId=" + volumeId
-	resp, err := client.Post(url, "", nil)
+	URL = weedFs.Config.MasterURL + "/dir/lookup?volumeId=" + volumeId
+	resp, err := client.Post(URL, "", nil)
 	if err != nil {
-		err = ctx.EWarningf("Unable to get volume %s url from WeedFS master at %s : %s", volumeId, url, err)
+		err = ctx.EWarningf("Unable to get volume %s url from WeedFS master at %s : %s", volumeId, URL, err)
 		return
 	}
 	defer resp.Body.Close()
@@ -291,7 +291,7 @@ func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeId string) (u
 	// Read response body
 	bodyStr, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		err = ctx.EWarningf("Unable to read response from WeedFS master at %s : %s", volumeId, url, err)
+		err = ctx.EWarningf("Unable to read response from WeedFS master at %s : %s", volumeId, URL, err)
 		return
 	}
 
@@ -299,7 +299,7 @@ func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeId string) (u
 	responseMap := make(map[string]interface{})
 	err = json.Unmarshal(bodyStr, &responseMap)
 	if err != nil {
-		err = ctx.EWarningf("Unable to unserialize json response \"%s\"from WeedFS master at %s : %s", bodyStr, url, err)
+		err = ctx.EWarningf("Unable to unserialize json response \"%s\"from WeedFS master at %s : %s", bodyStr, URL, err)
 		return
 	}
 
@@ -307,7 +307,7 @@ func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeId string) (u
 	// available url for a given volume
 	var urlsFound []string
 	if responseMap["locations"] == nil {
-		err = ctx.EWarningf("Missing url from WeedFS master response \"%s\" at %s", bodyStr, url)
+		err = ctx.EWarningf("Missing url from WeedFS master response \"%s\" at %s", bodyStr, URL)
 		return
 	}
 	if locationsArray, ok := responseMap["locations"].([]interface{}); ok {
@@ -327,6 +327,6 @@ func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeId string) (u
 	}
 
 	// Take a random url from the list
-	url = urlsFound[rand.Intn(len(urlsFound))]
+	URL = urlsFound[rand.Intn(len(urlsFound))]
 	return
 }
