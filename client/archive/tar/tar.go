@@ -125,24 +125,23 @@ func (tb *Backend) GetConfiguration() interface{} {
 	return tb.Config
 }
 
-
 func getCompressExtention(mode string) string {
 	switch mode {
-		case "gzip":
+	case "gzip":
 		return ".gz"
-		case "bzip2":
+	case "bzip2":
 		return ".bz2"
-		case "xz":
+	case "xz":
 		return ".xz"
-		case "lzip":
+	case "lzip":
 		return ".lz"
-		case "lzop":
+	case "lzop":
 		return ".lzo"
-		case "lzma":
+	case "lzma":
 		return ".lzma"
-		case "compres":
+	case "compres":
 		return ".Z"
-		default:
+	default:
 		return ""
 	}
 }

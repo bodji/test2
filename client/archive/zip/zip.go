@@ -30,18 +30,18 @@ THE SOFTWARE.
 package zip
 
 import (
-	"io"
-	"os/exec"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
 
 // Backend config
 type Backend struct {
-	Config *ZipBackendConfig
+	Config *BackendConfig
 }
 
 // NewZipBackend instantiate a new ZIP Archive Backend

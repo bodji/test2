@@ -30,20 +30,20 @@ THE SOFTWARE.
 package zip
 
 import (
-    "github.com/root-gg/utils"
+	"github.com/root-gg/utils"
 )
 
-// ZipBackendConfig object
-type ZipBackendConfig struct {
-    Zip     string
-    Options string
+// BackendConfig object
+type BackendConfig struct {
+	Zip     string
+	Options string
 }
 
 // NewZipBackendConfig instantiate a new Backend Configuration
 // from config map passed as argument
-func NewZipBackendConfig(config map[string]interface{}) (zb *ZipBackendConfig) {
-    zb = new(ZipBackendConfig)
-    zb.Zip = "/bin/zip"
-    utils.Assign(zb, config)
-    return
+func NewZipBackendConfig(config map[string]interface{}) (zb *BackendConfig) {
+	zb = new(BackendConfig)
+	zb.Zip = "/bin/zip"
+	utils.Assign(zb, config)
+	return
 }

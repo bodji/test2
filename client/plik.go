@@ -189,7 +189,7 @@ Options:
 
 		// Print file informations (only url if quiet mode enabled)
 		if config.Config.Quiet {
-			fmt.Println(getFileUrl(uploadInfo, file))
+			fmt.Println(getFileURL(uploadInfo, file))
 		} else {
 			fmt.Println(getFileCommand(uploadInfo, file))
 		}
@@ -202,8 +202,8 @@ Options:
 }
 
 func createUpload(uploadParams *common.Upload) (upload *common.Upload, err error) {
-	var Url *url.URL
-	Url, err = url.Parse(config.Config.Url + "/upload")
+	var URL *url.URL
+	URL, err = url.Parse(config.Config.Url + "/upload")
 	if err != nil {
 		return
 	}
@@ -215,7 +215,7 @@ func createUpload(uploadParams *common.Upload) (upload *common.Upload, err error
 	}
 
 	var req *http.Request
-	req, err = http.NewRequest("POST", Url.String(), bytes.NewBuffer(j))
+	req, err = http.NewRequest("POST", URL.String(), bytes.NewBuffer(j))
 	if err != nil {
 		return
 	}
@@ -295,14 +295,14 @@ func upload(uploadInfo *common.Upload, name string, size int64, reader io.Reader
 		return pipeWriter.CloseWithError(err)
 	}()
 
-	var Url *url.URL
-	Url, err = url.Parse(config.Config.Url + "/upload/" + uploadInfo.ID + "/file")
+	var URL *url.URL
+	URL, err = url.Parse(config.Config.Url + "/upload/" + uploadInfo.ID + "/file")
 	if err != nil {
 		return
 	}
 
 	var req *http.Request
-	req, err = http.NewRequest("POST", Url.String(), pipeReader)
+	req, err = http.NewRequest("POST", URL.String(), pipeReader)
 	if err != nil {
 		return
 	}
@@ -371,8 +371,8 @@ func getFileCommand(upload *common.Upload, file *common.File) (command string) {
 	return
 }
 
-func getFileUrl(upload *common.Upload, file *common.File) (fileUrl string) {
-	fileUrl += fmt.Sprintf("%s/file/%s/%s/%s", config.Config.Url, upload.ID, file.ID, file.Name)
+func getFileURL(upload *common.Upload, file *common.File) (fileURL string) {
+	fileURL += fmt.Sprintf("%s/file/%s/%s/%s", config.Config.Url, upload.ID, file.ID, file.Name)
 	return
 }
 

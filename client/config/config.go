@@ -50,7 +50,7 @@ var Config *UploadConfig
 var Upload *common.Upload
 var Files []*FileToUpload
 
-var CryptoBackend crypto.CryptoBackend
+var CryptoBackend crypto.Backend
 var ArchiveBackend archive.Backend
 
 var LongestFilenameSize int
