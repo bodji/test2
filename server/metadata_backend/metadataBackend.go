@@ -37,6 +37,8 @@ import (
 
 var metadataBackend MetadataBackend
 
+// MetadataBackend interface describes methods that metadata backends
+// must implements to be compatible with plik.
 type MetadataBackend interface {
 	Create(ctx *common.PlikContext, u *common.Upload) (err error)
 	Get(ctx *common.PlikContext, id string) (u *common.Upload, err error)
@@ -46,6 +48,8 @@ type MetadataBackend interface {
 	GetUploadsToRemove(ctx *common.PlikContext) (ids []string, err error)
 }
 
+// GetMetaDataBackend is a singleton pattern.
+// Init static backend if not already and return it
 func GetMetaDataBackend() MetadataBackend {
 	if metadataBackend == nil {
 		Initialize()
@@ -53,6 +57,7 @@ func GetMetaDataBackend() MetadataBackend {
 	return metadataBackend
 }
 
+// Initialize backend from type found in configuration
 func Initialize() {
 	if metadataBackend == nil {
 		switch common.Config.MetadataBackend {

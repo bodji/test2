@@ -281,7 +281,7 @@ func (fmb *MetadataBackend) GetUploadsToRemove(ctx *common.PlikContext) (ids []s
 		ids = make([]string, 0)
 
 		// Let's call our friend find
-		args := make([]string, 0)
+		var args []string
 		args = append(args, fmb.Config.Directory)
 		args = append(args, "-mindepth", "2") // Remember that the upload directory
 		args = append(args, "-maxdepth", "2") // structure is splitted in two
@@ -302,8 +302,8 @@ func (fmb *MetadataBackend) GetUploadsToRemove(ctx *common.PlikContext) (ids []s
 		for _, pathToRemove := range pathsToRemove {
 			if pathToRemove != "" {
 				// Extract upload id from path
-				uploadId := filepath.Base(pathToRemove)
-				ids = append(ids, uploadId)
+				uploadID := filepath.Base(pathToRemove)
+				ids = append(ids, uploadID)
 			}
 		}
 	}
@@ -319,17 +319,17 @@ func (fmb *MetadataBackend) GetUploadsToRemove(ctx *common.PlikContext) (ids []s
 // then every of them will override the file with
 // their own possibly incomplete/invalid version.
 
-func lock(uploadId string) {
-	if locks[uploadId] == nil {
-		locks[uploadId] = new(sync.RWMutex)
+func lock(uploadID string) {
+	if locks[uploadID] == nil {
+		locks[uploadID] = new(sync.RWMutex)
 	}
-	locks[uploadId].Lock()
+	locks[uploadID].Lock()
 }
 
-func unlock(uploadId string) {
-	locks[uploadId].Unlock()
+func unlock(uploadID string) {
+	locks[uploadID].Unlock()
 	go func() {
 		time.Sleep(time.Minute)
-		delete(locks, uploadId)
+		delete(locks, uploadID)
 	}()
 }

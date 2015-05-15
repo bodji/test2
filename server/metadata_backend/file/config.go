@@ -33,7 +33,7 @@ import (
     "github.com/root-gg/utils"
 )
 
-// BackendConfig object
+// MetadataBackendConfig object
 type MetadataBackendConfig struct {
     Directory string
 }

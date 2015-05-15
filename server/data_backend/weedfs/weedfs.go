@@ -275,15 +275,15 @@ func (weedFs *Backend) RemoveUpload(ctx *common.PlikContext, upload *common.Uplo
 	return nil
 }
 
-func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeId string) (URL string, err error) {
+func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeID string) (URL string, err error) {
 	timer := ctx.Time("get volume url")
 	defer timer.Stop()
 
 	// Ask a WeedFS master the volume urls
-	URL = weedFs.Config.MasterURL + "/dir/lookup?volumeId=" + volumeId
+	URL = weedFs.Config.MasterURL + "/dir/lookup?volumeId=" + volumeID
 	resp, err := client.Post(URL, "", nil)
 	if err != nil {
-		err = ctx.EWarningf("Unable to get volume %s url from WeedFS master at %s : %s", volumeId, URL, err)
+		err = ctx.EWarningf("Unable to get volume %s url from WeedFS master at %s : %s", volumeID, URL, err)
 		return
 	}
 	defer resp.Body.Close()
@@ -291,7 +291,7 @@ func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeId string) (U
 	// Read response body
 	bodyStr, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		err = ctx.EWarningf("Unable to read response from WeedFS master at %s : %s", volumeId, URL, err)
+		err = ctx.EWarningf("Unable to read response from WeedFS master at %s : %s", volumeID, URL, err)
 		return
 	}
 
@@ -322,7 +322,7 @@ func (weedFs *Backend) getvolumeURL(ctx *common.PlikContext, volumeId string) (U
 		}
 	}
 	if len(urlsFound) == 0 {
-		err = ctx.EWarningf("No url found for WeedFS volume %s", volumeId)
+		err = ctx.EWarningf("No url found for WeedFS volume %s", volumeID)
 		return
 	}
 
