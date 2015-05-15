@@ -51,7 +51,7 @@ $ make clients
 ```
 
 ### API
-Plik server expose a RESTfull API to manage uploads and get files :
+Plik server expose a REST-full API to manage uploads and get files :
 
 Creating upload and uploading files :
  
