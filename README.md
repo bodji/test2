@@ -68,23 +68,22 @@ Creating upload and uploading files :
            - id (required to upload files)
            - uploadToken (required to upload files)
    - **POST** /upload/:uploadid:/file
-   Body must be a multipart request with a part named "file" containing file data
+     - Body must be a multipart request with a part named "file" containing file data
    Returning a JSON object of newly uploaded file
    
    - **DELETE** /upload/:uploadid:/file/:fileid:
-   Delete file from the upload. Upload must have "removable" option enabled.
+     - Delete file from the upload. Upload must have "removable" option enabled.
  
 Get files :
 
   - **HEAD** /file/:uploadid/:fileid:/:filename:
-   Returning only HTTP headers. Usefull to know Content-Type and Content-Type of file without downloading it. Especially if upload has OneShot option enabled.
+    - Returning only HTTP headers. Usefull to know Content-Type and Content-Type of file without downloading it. Especially if upload has OneShot option enabled.
 
   - **GET**  /file/:uploadid/:fileid:/:filename:
-  Download specified file from upload. Filename **MUST** be right.
-  In a browser, it will try to display file (if it's a jpeg for example). You can force download with dl=1 in url.
+    - Download specified file from upload. Filename **MUST** be right. In a browser, it will try to display file (if it's a jpeg for example). You can force download with dl=1 in url.
 
   - **GET**  /file/:uploadid/:fileid:/:filename:/yubikey/:yubikeyOtp:
-  Same as previous call, except that you can specify a Yubikey OTP in the URL if the upload is Yubikey restricted.
+    - Same as previous call, except that you can specify a Yubikey OTP in the URL if the upload is Yubikey restricted.
 
 
 Examples :
