@@ -50,8 +50,8 @@ var Config *UploadConfig
 var Upload *common.Upload
 var Files []*FileToUpload
 
-var CryptoBackend crypto.Backend
-var ArchiveBackend archive.Backend
+var cryptoBackend crypto.Backend
+var archiveBackend archive.Backend
 
 var LongestFilenameSize int
 
@@ -59,7 +59,7 @@ type UploadConfig struct {
 	Debug          bool
 	Quiet          bool
 	HomeDir        string
-	Url            string
+	URL            string
 	OneShot        bool
 	Removable      bool
 	Secure         bool
@@ -72,7 +72,7 @@ type UploadConfig struct {
 	Comments       string
 	Yubikey        bool
 	Password       string
-	Ttl            int
+	TTL            int
 }
 
 type FileToUpload struct {
@@ -86,7 +86,7 @@ func NewUploadConfig() (config *UploadConfig) {
 	config = new(UploadConfig)
 	config.Debug = false
 	config.Quiet = false
-	config.Url = "http://127.0.0.1:8080"
+	config.URL = "http://127.0.0.1:8080"
 	config.OneShot = false
 	config.Removable = false
 	config.Secure = false
@@ -104,7 +104,7 @@ func NewUploadConfig() (config *UploadConfig) {
 	config.Comments = ""
 	config.Yubikey = false
 	config.Password = ""
-	config.Ttl = 86400 * 30
+	config.TTL = 86400 * 30
 	return
 }
 
@@ -130,9 +130,9 @@ func Load() (err error) {
 		fmt.Printf("Please enter your plik domain [default:http://127.0.0.1:8080] : ")
 		_, err := fmt.Scanf("%s", &domain)
 		if err == nil {
-			Config.Url = domain
+			Config.URL = domain
 			if !strings.HasPrefix(domain, "http") {
-				Config.Url = "http://" + domain
+				Config.URL = "http://" + domain
 			}
 		}
 
@@ -176,7 +176,7 @@ func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 
 	// Plik url
 	if arguments["--server"] != nil && arguments["--server"].(string) != "" {
-		Config.Url = arguments["--server"].(string)
+		Config.URL = arguments["--server"].(string)
 	}
 
 	// Check files
@@ -230,7 +230,7 @@ func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 	}
 
 	// Upload time to live
-	Upload.TTL = Config.Ttl
+	Upload.TTL = Config.TTL
 	if arguments["--ttl"] != nil && arguments["--ttl"].(string) != "" {
 		ttlStr := arguments["--ttl"].(string)
 		mul := 1
@@ -259,16 +259,16 @@ func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 			secureMethod = arguments["--secure"].(string)
 		}
 		var err error
-		CryptoBackend, err = crypto.NewCryptoBackend(secureMethod, Config.SecureOptions)
+		cryptoBackend, err = crypto.NewCryptoBackend(secureMethod, Config.SecureOptions)
 		if err != nil {
 			return fmt.Errorf("Invalid secure params : %s\n", err)
 		}
-		err = CryptoBackend.Configure(arguments)
+		err = cryptoBackend.Configure(arguments)
 		if err != nil {
 			return fmt.Errorf("Invalid secure params : %s\n", err)
 		}
 
-		Debug("Crypto backend configuration : " + utils.Sdump(CryptoBackend.GetConfiguration()))
+		Debug("Crypto backend configuration : " + utils.Sdump(cryptoBackend.GetConfiguration()))
 	}
 
 	// Do we need an archive backend
@@ -278,16 +278,16 @@ func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 		if arguments["--archive"] != nil && arguments["--archive"] != "" {
 			Config.ArchiveMethod = arguments["--archive"].(string)
 		}
-		ArchiveBackend, err = archive.NewArchiveBackend(Config.ArchiveMethod, Config.ArchiveOptions)
+		archiveBackend, err = archive.NewArchiveBackend(Config.ArchiveMethod, Config.ArchiveOptions)
 		if err != nil {
 			return fmt.Errorf("Invalid archive params : %s\n", err)
 		}
-		err = ArchiveBackend.Configure(arguments)
+		err = archiveBackend.Configure(arguments)
 		if err != nil {
 			return fmt.Errorf("Invalid archive params : %s\n", err)
 		}
 
-		Debug("Archive backend configuration : " + utils.Sdump(ArchiveBackend.GetConfiguration()))
+		Debug("Archive backend configuration : " + utils.Sdump(archiveBackend.GetConfiguration()))
 	} else {
 		for _, fileToUpload := range Files {
 			fh, err := os.Open(fileToUpload.Path)
@@ -340,6 +340,14 @@ func UnmarshalArgs(arguments map[string]interface{}) (err error) {
 	}
 
 	return
+}
+
+func GetArchiveBackend() archive.Backend {
+	return archiveBackend
+}
+
+func GetCryptoBackend() crypto.Backend {
+	return cryptoBackend
 }
 
 func Debug(message string) {
