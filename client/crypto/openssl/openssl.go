@@ -38,7 +38,6 @@ import (
 	"github.com/root-gg/plik/server/common"
 )
 
-
 // Backend object
 type Backend struct {
 	Config *BackendConfig
