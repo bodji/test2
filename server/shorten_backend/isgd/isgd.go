@@ -43,25 +43,31 @@ import (
 	"github.com/root-gg/plik/server/common"
 )
 
-var timeout = time.Duration(time.Second)
-var client = http.Client{Timeout: timeout}
+var (
+	timeout = time.Duration(time.Second)
+	client = http.Client{Timeout: timeout}
+)
 
+// ShortenBackendIsGd object
 type ShortenBackendIsGd struct {
-	Url   string
+	URL   string
 	Token string
 }
 
+// NewIsGdShortenBackend instantiate a shorten backend with
+// configuration passed as argument
 func NewIsGdShortenBackend(_ map[string]interface{}) *ShortenBackendIsGd {
 	isgd := new(ShortenBackendIsGd)
-	isgd.Url = "http://is.gd/create.php?format=simple"
+	isgd.URL = "http://is.gd/create.php?format=simple"
 	return isgd
 }
 
-func (sb *ShortenBackendIsGd) Shorten(ctx *common.PlikContext, longUrl string) (shortUrl string, err error) {
+// Shorten implementation for is.gd shorten backend
+func (sb *ShortenBackendIsGd) Shorten(ctx *common.PlikContext, longURL string) (shortURL string, err error) {
 	defer ctx.Finalize(err)
 
 	// Request short url
-	resp, err := client.Get(sb.Url + "&url=" + url.QueryEscape(longUrl))
+	resp, err := client.Get(sb.URL + "&url=" + url.QueryEscape(longURL))
 	if err != nil {
 		err = ctx.EWarningf("Unable to request short url from is.gd : %s", err)
 		return

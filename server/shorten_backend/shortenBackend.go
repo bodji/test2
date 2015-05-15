@@ -37,10 +37,14 @@ import (
 
 var shortenBackend ShortenBackend
 
+// ShortenBackend interface describes methods that shorten backends
+// must implements to be compatible with plik.
 type ShortenBackend interface {
-	Shorten(ctx *common.PlikContext, longUrl string) (string, error)
+	Shorten(ctx *common.PlikContext, longURL string) (string, error)
 }
 
+// GetShortenBackend is a singleton pattern.
+// Init static backend if not already and return it
 func GetShortenBackend() ShortenBackend {
 	if shortenBackend == nil {
 		Initialize()
@@ -48,6 +52,7 @@ func GetShortenBackend() ShortenBackend {
 	return shortenBackend
 }
 
+// Initialize backend from type found in configuration
 func Initialize() {
 	if common.Config.ShortenBackend != "" {
 		if shortenBackend == nil {

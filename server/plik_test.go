@@ -311,14 +311,14 @@ func getUpload(uploadID string) (httpCode int, upload *common.Upload, err error)
 
 func getFile(upload *common.Upload, file *common.File) (httpCode int, content string, err error) {
 
-	var Url *url.URL
-	Url, err = url.Parse(plikURL + "/file/" + upload.ID + "/" + file.ID + "/" + file.Name)
+	var URL *url.URL
+	URL, err = url.Parse(plikURL + "/file/" + upload.ID + "/" + file.ID + "/" + file.Name)
 	if err != nil {
 		return
 	}
 
 	var req *http.Request
-	req, err = http.NewRequest("GET", Url.String(), nil)
+	req, err = http.NewRequest("GET", URL.String(), nil)
 	if err != nil {
 		return
 	}
