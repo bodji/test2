@@ -27,7 +27,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 **/
 
-package shorten_backend
+package shortenBackend
 
 import (
 	"github.com/root-gg/plik/server/common"

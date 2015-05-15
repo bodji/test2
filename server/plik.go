@@ -73,9 +73,9 @@ func main() {
 	log.Infof("Starting plikd server v" + common.GetVersion())
 
 	// Initialize all backends
-	metadata_backend.Initialize()
-	data_backend.Initialize()
-	shorten_backend.Initialize()
+	metadataBackend.Initialize()
+	dataBackend.Initialize()
+	shortenBackend.Initialize()
 
 	// HTTP Api routes configuration
 	r := mux.NewRouter()
@@ -237,14 +237,14 @@ func createUploadHandler(resp http.ResponseWriter, req *http.Request) {
 	// A short url is created for each upload if a shorten backend is specified in the configuration.
 	// Referer header is used to get the url of incoming request, clients have to set it in order
 	// to get this feature working
-	if shorten_backend.GetShortenBackend() != nil {
+	if shortenBackend.GetShortenBackend() != nil {
 		if req.Header.Get("Referer") != "" {
 			u, err := url.Parse(req.Header.Get("Referer"))
 			if err != nil {
 				ctx.Warningf("Unable to parse referer url : %s", err)
 			}
 			longURL := u.Scheme + "://" + u.Host + "#/?id=" + upload.ID
-			shortURL, err := shorten_backend.GetShortenBackend().Shorten(ctx.Fork("shorten url"), longURL)
+			shortURL, err := shortenBackend.GetShortenBackend().Shorten(ctx.Fork("shorten url"), longURL)
 			if err == nil {
 				upload.ShortURL = shortURL
 			} else {
@@ -254,7 +254,7 @@ func createUploadHandler(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// Save the metadata
-	err = metadata_backend.GetMetaDataBackend().Create(ctx.Fork("create metadata"), upload)
+	err = metadataBackend.GetMetaDataBackend().Create(ctx.Fork("create metadata"), upload)
 	if err != nil {
 		ctx.Warningf("Create new upload error : %s", err)
 		http.Error(resp, common.NewResult("Unable to create new upload", nil).ToJSONString(), 500)
@@ -289,7 +289,7 @@ func getUploadHandler(resp http.ResponseWriter, req *http.Request) {
 	ctx.SetUpload(uploadID)
 
 	// Retrieve upload metadata
-	upload, err := metadata_backend.GetMetaDataBackend().Get(ctx.Fork("get metadata"), uploadID)
+	upload, err := metadataBackend.GetMetaDataBackend().Get(ctx.Fork("get metadata"), uploadID)
 	if err != nil {
 		ctx.Warningf("Upload %s not found : %s", uploadID, err)
 		http.Error(resp, common.NewResult(fmt.Sprintf("Upload %s not found", uploadID), nil).ToJSONString(), 404)
@@ -341,7 +341,7 @@ func getFileHandler(resp http.ResponseWriter, req *http.Request) {
 	ctx.SetUpload(uploadID)
 
 	// Get the upload informations from the metadata backend
-	upload, err := metadata_backend.GetMetaDataBackend().Get(ctx.Fork("get metadata"), uploadID)
+	upload, err := metadataBackend.GetMetaDataBackend().Get(ctx.Fork("get metadata"), uploadID)
 	if err != nil {
 		ctx.Warningf("Upload %s not found : %s", uploadID, err)
 		redirect(req, resp, fmt.Errorf("Upload %s not found", uploadID), 404)
@@ -455,7 +455,7 @@ func getFileHandler(resp http.ResponseWriter, req *http.Request) {
 
 	if req.Method == "GET" {
 		// Get file in data backend
-		fileReader, err := data_backend.GetDataBackend().GetFile(ctx.Fork("get file"), upload, file.ID)
+		fileReader, err := dataBackend.GetDataBackend().GetFile(ctx.Fork("get file"), upload, file.ID)
 		if err != nil {
 			ctx.Warningf("Failed to get file %s in upload %s : %s", file.Name, upload.ID, err)
 			redirect(req, resp, fmt.Errorf("Failed to read file %s", file.Name), 404)
@@ -466,7 +466,7 @@ func getFileHandler(resp http.ResponseWriter, req *http.Request) {
 		// Update metadata if oneShot option is set
 		if upload.OneShot {
 			file.Status = "downloaded"
-			err = metadata_backend.GetMetaDataBackend().AddOrUpdateFile(ctx.Fork("update metadata"), upload, file)
+			err = metadataBackend.GetMetaDataBackend().AddOrUpdateFile(ctx.Fork("update metadata"), upload, file)
 			if err != nil {
 				ctx.Warningf("Error while deleting file %s from upload %s metadata : %s", file.Name, upload.ID, err)
 			}
@@ -480,7 +480,7 @@ func getFileHandler(resp http.ResponseWriter, req *http.Request) {
 
 		// Remove file from data backend if oneShot option is set
 		if upload.OneShot {
-			err = data_backend.GetDataBackend().RemoveFile(ctx.Fork("remove file"), upload, file.ID)
+			err = dataBackend.GetDataBackend().RemoveFile(ctx.Fork("remove file"), upload, file.ID)
 			if err != nil {
 				ctx.Warningf("Error while deleting file %s from upload %s : %s", file.Name, upload.ID, err)
 				return
@@ -506,7 +506,7 @@ func addFileHandler(resp http.ResponseWriter, req *http.Request) {
 	ctx.SetUpload(uploadID)
 
 	// Get upload metadata
-	upload, err := metadata_backend.GetMetaDataBackend().Get(ctx.Fork("get metadata"), uploadID)
+	upload, err := metadataBackend.GetMetaDataBackend().Get(ctx.Fork("get metadata"), uploadID)
 	if err != nil {
 		ctx.Warningf("Upload metadata not found")
 		http.Error(resp, common.NewResult(fmt.Sprintf("Upload %s not found", uploadID), nil).ToJSONString(), 404)
@@ -610,7 +610,7 @@ func addFileHandler(resp http.ResponseWriter, req *http.Request) {
 	}()
 
 	// Save file in the data backend
-	backendDetails, err := data_backend.GetDataBackend().AddFile(ctx.Fork("save file"), upload, newFile, preprocessReader)
+	backendDetails, err := dataBackend.GetDataBackend().AddFile(ctx.Fork("save file"), upload, newFile, preprocessReader)
 	if err != nil {
 		ctx.Warningf("Unable to save file : %s", err)
 		http.Error(resp, common.NewResult(fmt.Sprintf("Error saving file %s in upload %s : %s", newFile.Name, upload.ID, err), nil).ToJSONString(), 500)
@@ -626,7 +626,7 @@ func addFileHandler(resp http.ResponseWriter, req *http.Request) {
 
 	// Update upload metadata
 	upload.Files[newFile.ID] = newFile
-	err = metadata_backend.GetMetaDataBackend().AddOrUpdateFile(ctx.Fork("update metadata"), upload, newFile)
+	err = metadataBackend.GetMetaDataBackend().AddOrUpdateFile(ctx.Fork("update metadata"), upload, newFile)
 	if err != nil {
 		ctx.Warningf("Unable to update metadata : %s", err)
 		http.Error(resp, common.NewResult(fmt.Sprintf("Error adding file %s to upload %s metadata : %s", newFile.Name, upload.ID, err), nil).ToJSONString(), 500)
@@ -668,7 +668,7 @@ func removeFileHandler(resp http.ResponseWriter, req *http.Request) {
 	ctx.SetUpload(uploadID)
 
 	// Retrieve Upload
-	upload, err := metadata_backend.GetMetaDataBackend().Get(ctx.Fork("get metadata"), uploadID)
+	upload, err := metadataBackend.GetMetaDataBackend().Get(ctx.Fork("get metadata"), uploadID)
 	if err != nil {
 		ctx.Warning("Upload not found")
 		http.Error(resp, common.NewResult(fmt.Sprintf("Upload not %s found", uploadID), nil).ToJSONString(), 404)
@@ -699,14 +699,14 @@ func removeFileHandler(resp http.ResponseWriter, req *http.Request) {
 
 	// Set status to removed, and save metadatas
 	file.Status = "removed"
-	if err := metadata_backend.GetMetaDataBackend().AddOrUpdateFile(ctx.Fork("update metadata"), upload, file); err != nil {
+	if err := metadataBackend.GetMetaDataBackend().AddOrUpdateFile(ctx.Fork("update metadata"), upload, file); err != nil {
 		ctx.Warningf("Error while updating file metadata : %s", err)
 		http.Error(resp, common.NewResult(fmt.Sprintf("Error while updating file %s metadata in upload %s", file.Name, upload.ID), nil).ToJSONString(), 500)
 		return
 	}
 
 	// Remove file from data backend
-	if err := data_backend.GetDataBackend().RemoveFile(ctx.Fork("remove file"), upload, file.ID); err != nil {
+	if err := dataBackend.GetDataBackend().RemoveFile(ctx.Fork("remove file"), upload, file.ID); err != nil {
 		ctx.Warningf("Error while deleting file : %s", err)
 		http.Error(resp, common.NewResult(fmt.Sprintf("Error while deleting file %s in upload %s", file.Name, upload.ID), nil).ToJSONString(), 500)
 		return
@@ -796,7 +796,7 @@ func UploadsCleaningRoutine() {
 		// Get uploads that needs to be removed
 		log.Infof("Cleaning expired uploads...")
 
-		uploadIds, err := metadata_backend.GetMetaDataBackend().GetUploadsToRemove(ctx)
+		uploadIds, err := metadataBackend.GetMetaDataBackend().GetUploadsToRemove(ctx)
 		if err != nil {
 			log.Warningf("Failed to get expired uploads : %s")
 		} else {
@@ -808,7 +808,7 @@ func UploadsCleaningRoutine() {
 				// Get upload metadata
 				childCtx := ctx.Fork("get metadata")
 				childCtx.AutoDetach()
-				upload, err := metadata_backend.GetMetaDataBackend().Get(childCtx, uploadID)
+				upload, err := metadataBackend.GetMetaDataBackend().Get(childCtx, uploadID)
 				if err != nil {
 					log.Warningf("Unable to get infos for upload: %s", err)
 					continue
@@ -817,7 +817,7 @@ func UploadsCleaningRoutine() {
 				// Remove from data backend
 				childCtx = ctx.Fork("remove upload data")
 				childCtx.AutoDetach()
-				err = data_backend.GetDataBackend().RemoveUpload(childCtx, upload)
+				err = dataBackend.GetDataBackend().RemoveUpload(childCtx, upload)
 				if err != nil {
 					log.Warningf("Unable to remove upload data : %s", err)
 					continue
@@ -826,7 +826,7 @@ func UploadsCleaningRoutine() {
 				// Remove from metadata backend
 				childCtx = ctx.Fork("remove upload metadata")
 				childCtx.AutoDetach()
-				err = metadata_backend.GetMetaDataBackend().Remove(childCtx, upload)
+				err = metadataBackend.GetMetaDataBackend().Remove(childCtx, upload)
 				if err != nil {
 					log.Warningf("Unable to remove upload metadata : %s", err)
 				}
@@ -851,11 +851,11 @@ func RemoveUploadIfNoFileAvailable(ctx *common.PlikContext, upload *common.Uploa
 
 		ctx.Debugf("No more files in upload. Removing all informations.")
 
-		err = data_backend.GetDataBackend().RemoveUpload(ctx, upload)
+		err = dataBackend.GetDataBackend().RemoveUpload(ctx, upload)
 		if err != nil {
 			return
 		}
-		err = metadata_backend.GetMetaDataBackend().Remove(ctx, upload)
+		err = metadataBackend.GetMetaDataBackend().Remove(ctx, upload)
 		if err != nil {
 			return
 		}

@@ -27,7 +27,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 **/
 
-package metadata_backend
+package metadataBackend
 
 import (
 	"github.com/root-gg/plik/server/common"
