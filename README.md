@@ -54,17 +54,17 @@ $ make clients
 Plik server expose a RESTfull API to manage uploads and get files :
 
 Managing uploads :
-   - POST        /upload
-   - GET         /upload/{uploadid}
+   - **POST**        /upload
+   - **GET**         /upload/{uploadid}
 
 Managing files :
-   - POST        /upload/{uploadid}/file             (request must be multipart, with a part named "file" for file data)
-   - GET/HEAD    /upload/{uploadid}/file/{fileid}    (head request just print headers, it does not count as a download (for oneShot uploads))
-   - DELETE      /upload/{uploadid}/file/{fileid}    (only works if upload has "removable" option)
+   - **POST**        /upload/{uploadid}/file             (request must be multipart, with a part named "file" for file data)
+   - **GET/HEAD**    /upload/{uploadid}/file/{fileid}    (head request just print headers, it does not count as a download (for oneShot uploads))
+   - **DELETE**      /upload/{uploadid}/file/{fileid}    (only works if upload has "removable" option)
 
 Nice links :
-   - GET/HEAD    /file/{uploadid}/{fileid}/{filename}
-   - GET         /file/{uploadid}/{fileid}/{filename}/yubikey/{yubikey}
+   - **GET/HEAD**    /file/{uploadid}/{fileid}/{filename}
+   - **GET**         /file/{uploadid}/{fileid}/{filename}/yubikey/{yubikey}
 
 
 Examples :
